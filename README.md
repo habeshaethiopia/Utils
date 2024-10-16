@@ -43,9 +43,9 @@ This project provides a simple **web-based tool** to convert **YAML files** into
 
 ## **Project Structure**
 ```
-yaml-to-csv-converter/
+Utils/
 │
-├── app.py           # Main application script
+├── YAML_to_csv.py           # Main application script
 └── README.md        # Documentation (this file)
 ```
 
