@@ -1,0 +1,68 @@
+id,name,scannerPoolId,scannerPoolName,scannerPoolScannerScalingIsEnabled,scanPriority,isDataRetentionEnabled,dataRetentionDays,enableSASTCorrelation,disableGlobalDomainRestrictions,hasDomainRestrictions,disableGlobalPrivateDataSettings,hasPrivateDataSettings,fortifyConnectClientId,fortifyConnectClientName,fortifyConnectClientModeType
+67,ACE5,1,Default,False,5,False,180,True,False,False,True,False,,,
+65,AdminIA,2,Custom,True,3,True,90,False,True,True,False,True,12345,AdminClient,SAST
+
+
+Traceback (most recent call last):
+  File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 466, in _make_request
+    self._validate_conn(conn)
+  File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py", line 1095, in _validate_conn
+    conn.connect()
+  File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 730, in connect
+    soc
+File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py", line 909, in _ssl_wrap_socket_and_match_hostname
+    ssl_sock = ssl_wrap_socket(
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\util\ssl_.py", line 469, in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\site-packages\urllib3\util\ssl_.py", line 513, in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aalemay1\AppData\Local\Programs\Python\Python312\Lib\ssl.py", line 455, in wrap_socket
+    return self.sslsocket_class._create(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aalemay1\
+
+
+
+  {
+  "items": [
+    {
+      "id": 67,
+      "name": "ACE5",
+      "scannerPoolId": 1,
+      "scannerPoolName": "Default",
+      "scannerPoolScannerScalingIsEnabled": false,
+      "scanPriority": 5,
+      "isDataRetentionEnabled": false,
+      "dataRetentionDays": 180,
+      "enableSASTCorrelation": true,
+      "disableGlobalDomainRestrictions": false,
+      "hasDomainRestrictions": false,
+      "disableGlobalPrivateDataSettings": true,
+      "hasPrivateDataSettings": false,
+      "fortifyConnectClientId": null,
+      "fortifyConnectClientName": "",
+      "fortifyConnectClientModeType": null
+    },
+    {
+      "id": 65,
+      "name": "AdminIA",
+      "scannerPoolId": 2,
+      "scannerPoolName": "Custom",
+      "scannerPoolScannerScalingIsEnabled": true,
+      "scanPriority": 3,
+      "isDataRetentionEnabled": true,
+      "dataRetentionDays": 90,
+      "enableSASTCorrelation": false,
+      "disableGlobalDomainRestrictions": true,
+      "hasDomainRestrictions": true,
+      "disableGlobalPrivateDataSettings": false,
+      "hasPrivateDataSettings": true,
+      "fortifyConnectClientId": "12345",
+      "fortifyConnectClientName": "AdminClient",
+      "fortifyConnectClientModeType": "SAST"
+    }
+  ]
+}

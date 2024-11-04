@@ -1,0 +1,41 @@
+{
+    "items": [
+      {
+        "id": 67,
+        "name": "ACE5",
+        "scannerPoolId": 1,
+        "scannerPoolName": "Default",
+        "scannerPoolScannerScalingIsEnabled": false,
+        "scanPriority": 5,
+        "isDataRetentionEnabled": false,
+        "dataRetentionDays": 180,
+        "enableSASTCorrelation": true,
+        "disableGlobalDomainRestrictions": false,
+        "hasDomainRestrictions": false,
+        "disableGlobalPrivateDataSettings": true,
+        "hasPrivateDataSettings": false,
+        "fortifyConnectClientId": null,
+        "fortifyConnectClientName": "",
+        "fortifyConnectClientModeType": null
+      },
+      {
+        "id": 65,
+        "name": "AdminIA",
+        "scannerPoolId": 2,
+        "scannerPoolName": "Custom",
+        "scannerPoolScannerScalingIsEnabled": true,
+        "scanPriority": 3,
+        "isDataRetentionEnabled": true,
+        "dataRetentionDays": 90,
+        "enableSASTCorrelation": false,
+        "disableGlobalDomainRestrictions": true,
+        "hasDomainRestrictions": true,
+        "disableGlobalPrivateDataSettings": false,
+        "hasPrivateDataSettings": true,
+        "fortifyConnectClientId": "12345",
+        "fortifyConnectClientName": "AdminClient",
+        "fortifyConnectClientModeType": "SAST"
+      }
+    ]
+  }
+  

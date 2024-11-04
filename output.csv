@@ -1,0 +1,3 @@
+pluginID,severity_id,severity_name,severity_description,hasBeenMitigated,acceptRisk
+10395,0,Info,Informative,0,0
+10401,2,Low,Low severity issue,1,0
