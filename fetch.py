@@ -13,7 +13,8 @@ def process():
             "accept": "application/json",
             "Authorization": "FortifyToken xxxx"
         }
-        url='https://domain/api/v2/applications'
+        # You can edit the Url 
+        url='domain/api/v2/applications'
 
         # Make the GET request and bypass SSL certificate validation
         response = requests.get(url, headers=headers, verify=False)
