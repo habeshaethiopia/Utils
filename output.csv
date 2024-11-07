@@ -1,3 +1,17 @@
 pluginID,severity_id,severity_name,severity_description,hasBeenMitigated,acceptRisk
 10395,0,Info,Informative,0,0
 10401,2,Low,Low severity issue,1,0
+
+
+
+
+Failed to execute command: Invoke-WebRequest : The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.
+At line:7 char:13
++ $response = Invoke-WebRequest -Uri 'https://aweascua18.fema.net/api/v ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebExcep
+
+Addis
+3:28 PM
+Failed to execute command: Invoke-WebRequest : The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.
+At line:7 char:13
