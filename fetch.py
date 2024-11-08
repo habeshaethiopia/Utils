@@ -5,7 +5,7 @@ import urllib3
 import os
 
 urllib3.disable_warnings()
-
+#the python version of
 def process():
     try:
         # Define the headers
@@ -14,7 +14,7 @@ def process():
             "Authorization": "FortifyToken xxxx"
         }
         # You can edit the Url 
-        url='domain/api/v2/applications'
+        url='https://domain/api/v2/applications'
 
         # Make the GET request and bypass SSL certificate validation
         response = requests.get(url, headers=headers, verify=False)
