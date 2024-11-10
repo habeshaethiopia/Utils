@@ -14,4 +14,5 @@ At line:7 char:13
 Addis
 3:28 PM
 Failed to execute command: Invoke-WebRequest : The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.
-At line:7 char:13
+At line:7 char:1310395,0,Info,Informative,0,0
+10401,2,Low,Low severity issue,1,0
