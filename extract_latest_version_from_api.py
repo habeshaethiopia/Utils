@@ -56,6 +56,20 @@ if response.status_code == 200:
         "Creation Date",
         "Server Version",
         "Mode",
+        "Issue Template ID",
+        "Issue Template Name",
+        "Last FPR Upload Date",
+        "Analysis Results Exist",
+        "Audit Enabled",
+        "Analysis Upload Enabled",
+        "Metric Evaluation Date",
+        "Delta Period",
+        "Issue Count Delta",
+        "Percent Audited Delta",
+        "Critical Priority Issue Count Delta",
+        "Master Attr Guid",
+        "Project Created By",
+        "Project Creation Date"
     ]
 
     # Create CSV file with the latest version data
@@ -75,6 +89,20 @@ if response.status_code == 200:
                 "Creation Date": version["creationDate"],
                 "Server Version": version["serverVersion"],
                 "Mode": version["mode"],
+                "Issue Template ID": version["issueTemplateId"],
+                "Issue Template Name": version["issueTemplateName"],
+                "Last FPR Upload Date": version["currentState"]["lastFprUploadDate"],
+                "Analysis Results Exist": version["currentState"]["analysisResultsExist"],
+                "Audit Enabled": version["currentState"]["auditEnabled"],
+                "Analysis Upload Enabled": version["currentState"]["analysisUploadEnabled"],
+                "Metric Evaluation Date": version["currentState"]["metricEvaluationDate"],
+                "Delta Period": version["currentState"]["deltaPeriod"],
+                "Issue Count Delta": version["currentState"]["issueCountDelta"],
+                "Percent Audited Delta": version["currentState"]["percentAuditedDelta"],
+                "Critical Priority Issue Count Delta": version["currentState"]["criticalPriorityIssueCountDelta"],
+                "Master Attr Guid": version["masterAttrGuid"],
+                "Project Created By": version["project"]["createdBy"],
+                "Project Creation Date": version["project"]["creationDate"]
             }
             writer.writerow(row)
 
@@ -83,4 +111,4 @@ else:
     print(f"Error: Request failed with status code {response.status_code}")
 
 
-# take me 6hr to Write this code
+# take me 6:30 hr to Write this code
