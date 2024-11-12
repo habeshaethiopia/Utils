@@ -49,7 +49,7 @@ def fetch_applications() -> List[Dict[str, Any]]:
         url_with_dates = f"{API_URL}?startDate={start_date}&endDate={end_date}"
         logging.info(f"Fetching applications from {start_date} to {end_date}")
 
-        response = requests.get(url_with_dates, headers=headers, verify=False)
+        response = requests.get(API_URL, headers=headers, verify=False)
         response.raise_for_status()
 
         response_json = response.json()
