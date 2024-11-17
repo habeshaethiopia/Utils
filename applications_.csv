@@ -1,3 +1,0 @@
-id,name,scannerPoolId,scannerPoolName,scannerPoolScannerScalingIsEnabled,scanPriority,isDataRetentionEnabled,dataRetentionDays,enableSASTCorrelation,disableGlobalDomainRestrictions,hasDomainRestrictions,disableGlobalPrivateDataSettings,hasPrivateDataSettings,fortifyConnectClientId,fortifyConnectClientName,fortifyConnectClientModeType
-67,ACE5,1,Default,False,5,False,180,True,False,False,True,False,,,
-65,AdminIA,2,Custom,True,3,True,90,False,True,True,False,True,12345,AdminClient,SAST
