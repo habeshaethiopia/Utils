@@ -245,7 +245,49 @@ def fetch_versions(project_id, params_override=None):
         print("No versions found.")
 
     return all_versions
+def map_fields(issue, version, application):
+    """
+    Map issue data with corresponding application and version data.
 
+    Args:
+        issue (dict): Issue data.
+        version (dict): Version data.
+        application (dict): Application data.
+
+    Returns:
+        dict: Consolidated issue data with mapped application and version fields.
+    """
+    # Add mapped fields from application and version
+    additional_data = {
+        # Application-specific fields
+        "Application": application.get("name", ""),  # e.g., ACE5
+        "Scanner Pool Name": application.get("scannerPoolName", ""),  # e.g., Default
+        "Scan Priority": application.get("scanPriority", ""),  # e.g., 5
+        "Data Retention Enabled": application.get("isDataRetentionEnabled", False),  # e.g., True
+        "Data Retention Days": application.get("dataRetentionDays", ""),  # e.g., 365
+
+        # Version-specific fields
+        "Application Version": version.get("name", ""),  # e.g., 07-Sept
+        "User Name": version.get("createdBy", ""),  # e.g., phillips.humphrey@associates.fema.dhs.gov
+        "Issue Template Name": version.get("issueTemplateName", ""),  # e.g., Prioritized High Risk Issue Template
+        "Creation Date": version.get("creationDate", ""),  # e.g., 2024-10-23T19:12:22.490+00:00
+        "Committed": version.get("committed", False),  # e.g., True
+        "Project Name": version.get("project", {}).get("name", ""),  # e.g., SPARTA-ET
+        "Project Description": version.get("project", {}).get("description", ""),  # e.g., Project description text
+        "Server Version": version.get("serverVersion", ""),  # e.g., 23.2
+        "Audit Assistant Training": version.get("auditAssistantTrainingCustomTagGuid", ""),  # e.g., Guid value
+        "Mode": version.get("mode", ""),  # e.g., BASIC
+
+        # Current state fields
+        "Committed (State)": version.get("currentState", {}).get("committed", False),  # e.g., True
+        "Attention Required": version.get("currentState", {}).get("attentionRequired", False),  # e.g., False
+        "Analysis Results Exist": version.get("currentState", {}).get("analysisResultsExist", False),  # e.g., True
+        "Audit Enabled": version.get("currentState", {}).get("auditEnabled", False),  # e.g., True
+    }
+
+    # Combine issue data with additional data
+    consolidated_data = {**issue, **additional_data}
+    return consolidated_data
 def fetch_issues(version_id, params_override=None):
     """
     Fetch the latest security issue for a specific project version, handling pagination.
@@ -276,23 +318,31 @@ def fetch_issues(version_id, params_override=None):
     issues = response_data.get("data", [])
     if issues:
         all_issues.extend(issues)
-        print(f"Latest issue fetched for version ID {version_id}: Issue Found Date {issues[0]['foundDate']}")
+        print(f"Latest issue fetched for version ID {version_id}: {len(issues)}")
+    fieldnames = issues[0].keys() if issues else []
+    # write_to_csv(issues, fieldnames, API_CONFIG["issues"]["output_file"])
 
     return all_issues
 
-def fetch_issues_concurrently(version_ids, max_workers=5):
+def fetch_issues_concurrently(version_ids, versions, applications, max_workers=5):
     """
-    Fetch the latest issue for multiple versions concurrently.
+    Fetch all issues for multiple versions concurrently and map with application and version data.
 
     Args:
         version_ids (list): List of version IDs to fetch issues for.
+        versions (list): List of version dictionaries to map additional fields.
+        applications (list): List of application dictionaries to map additional fields.
         max_workers (int): Number of threads to use.
 
     Returns:
-        list: Consolidated list of all latest issues.
+        list: Consolidated list of all issues with mapped fields.
     """
     all_issues = []
     total_versions = len(version_ids)
+
+    # Create a lookup table for versions and applications by ID
+    version_lookup = {version["id"]: version for version in versions if "id" in version}
+    application_lookup = {app["id"]: app for app in applications if "id" in app}
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_version = {executor.submit(fetch_issues, vid): vid for vid in version_ids}
@@ -302,12 +352,22 @@ def fetch_issues_concurrently(version_ids, max_workers=5):
             try:
                 issues = future.result()
                 if issues:
-                    all_issues.extend(issues)
-                    print(f"Latest issue fetched for version ID {version_id}: Issue Found Date {issues[0]['foundDate']}")
+                    # Map fields for each issue
+                    for issue in issues:
+                        version = version_lookup.get(version_id, {})
+                        application_id = version.get("project", {}).get("id")
+                        application = application_lookup.get(application_id, {})
+                        mapped_issue = map_fields(issue, version, application)
+                        all_issues.append(mapped_issue)
+
+                    print(f"Issues fetched and mapped for version ID {version_id}: {len(issues)}")
             except Exception as e:
                 print(f"Error fetching issues for version ID {version_id}: {e}")
-    fieldnames = all_issues[0].keys() if issues else []
-    
+
+    # Write all mapped issues to the CSV
+    fieldnames = all_issues[0].keys() if all_issues else []
+    write_to_csv(all_issues, fieldnames, API_CONFIG["issues"]["output_file"])
+
     return all_issues
 
 def process_versions(applications):
@@ -333,7 +393,7 @@ def process_versions(applications):
 
     return all_versions
 
-def process_issues(versions):
+def process_issues(versions, applications):
     """
     Process and save security issues data for all versions.
 
@@ -345,7 +405,7 @@ def process_issues(versions):
     """
     all_issues = []
     version_ids = [version.get("id") for version in versions if version.get("id")]
-    all_issues = fetch_issues_concurrently(version_ids)
+    all_issues = fetch_issues_concurrently(version_ids, versions , applications)
     return all_issues
 
 def get_date_range() -> tuple[str, str]:
@@ -381,7 +441,7 @@ def main():
             return
 
         # Process issues
-        process_issues(versions)
+        process_issues(versions, applications)
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")

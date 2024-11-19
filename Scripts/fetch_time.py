@@ -30,6 +30,7 @@ def get_date_range() -> tuple[str, str]:
     """Calculate the date range for the past 7 days."""
     end_date = datetime.now()
     start_date = end_date - timedelta(days=7)
+    print(start_date.isoformat(), end_date.isoformat())
     return start_date.isoformat(), end_date.isoformat()
 
 def fetch_applications() -> List[Dict[str, Any]]:
