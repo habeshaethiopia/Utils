@@ -1,46 +1,41 @@
-import unittest
-from unittest.mock import patch, mock_open
-import os
+import json
+from extract_versions_latest import write_to_csv, map_fields  # Adjust the import based on your file structure
 
-from extract_versions import write_to_csv
+def main():
+    # Load the JSON data from the files
+    with open('/home/adane/Repository/Utils/src/issues.json') as issues_file:
+        issues_data = json.load(issues_file)
 
+    with open('/home/adane/Repository/Utils/src/version.json') as version_file:
+        version_data = json.load(version_file)
 
-class TestCSVWriting(unittest.TestCase):
-    @patch('os.path.isfile')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_write_to_csv_new_file(self, mock_file, mock_isfile):
-        mock_isfile.return_value = False
-        items = [{'id': 1, 'name': 'Test'}]
-        fieldnames = ['id', 'name']
-        filename = 'test.csv'
-        
-        result = write_to_csv(items, fieldnames, filename)
-        self.assertTrue(result)
-        mock_file.assert_called_with(filename, mode='a', newline='', encoding='utf-8')
-        handle = mock_file()
-        handle.write.assert_any_call('id,name\r\n')
-        handle.write.assert_any_call('1,Test\r\n')
-        # result = write_to_csv(items, fieldnames, filename)
+    with open('/home/adane/Repository/Utils/Scripts/res.json') as res_file:
+        res_data = json.load(res_file)
 
+    # Prepare the data for CSV writing
+    items = []
+    
 
-    @patch('os.path.isfile')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_write_to_csv_existing_file(self, mock_file, mock_isfile):
-        # mock_isfile.return_value = True
-        items = [{'id': 2, 'name': 'Another Test'}]
-        fieldnames = ['id', 'name']
-        filename = 'test.csv'
-        result = write_to_csv(items, fieldnames, filename)
-        self.assertTrue(result)
-        mock_file.assert_called_with(filename, mode='a', newline='', encoding='utf-8')
-        handle = mock_file()
-        handle.write.assert_any_call('2,Another Test\r\n')
+    for issue in issues_data:
+        # Find the corresponding version and application data
+        project_version_id = issue['projectVersionId']
+        version_info = next((v for v in version_data if v['id'] == project_version_id), None)
+
+        # Use res.json as the application data source
+        application_info = next((app for app in res_data['items'] if app['id'] == version_info['project']['id']), None) if version_info else None
+
+        if version_info and application_info:
+            # Call the map_fields function
+            mapped_data = map_fields(issue, version_info, application_info)
+            items.append(mapped_data)
+
+    # Call the write_to_csv function
+    filename = 'output.csv'
+    fieldnames = mapped_data.keys()
+    result = write_to_csv(items, fieldnames, filename)
+
+    # Print the result
+    print(f"CSV writing successful: {result}")
 
 if __name__ == '__main__':
-    unittest.main()
-    items = [{'id': 1, 'name': 'Test'}]
-    fieldnames = ['id', 'name']
-    filename = 'test.csv'
-    
-    result = write_to_csv(items, fieldnames, filename)
-    print(result)   
+    main()

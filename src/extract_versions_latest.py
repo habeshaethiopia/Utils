@@ -72,7 +72,7 @@ API_CONFIG = {
 
 def flatten_dict(d, parent_key="", sep="_"):
     """
-    Flatten a nested dictionary.
+    Flatten a nested dictionary, including handling lists and deeply nested structures.
 
     Args:
         d (dict): The dictionary to flatten.
@@ -88,8 +88,15 @@ def flatten_dict(d, parent_key="", sep="_"):
         if isinstance(v, dict):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         elif isinstance(v, list):
-            # Convert lists to comma-separated strings
-            items.append((new_key, ", ".join(map(str, v))))
+            # Check if the list contains dictionaries
+            if len(v) > 0 and isinstance(v[0], dict):
+                for idx, sub_dict in enumerate(v):
+                    items.extend(
+                        flatten_dict(sub_dict, f"{new_key}{sep}{idx}", sep=sep).items()
+                    )
+            else:
+                # Convert lists to comma-separated strings
+                items.append((new_key, ", ".join(map(str, v))))
         else:
             items.append((new_key, v))
     return dict(items)
@@ -261,6 +268,7 @@ def map_fields(issue: dict, version: dict, application: dict) -> dict:
     Returns:
         dict: Consolidated issue data with mapped application and version fields.
     """
+
     additional_data = {
         # Application-specific fields remain the same...
         "Application": application.get("name", ""),
@@ -268,36 +276,34 @@ def map_fields(issue: dict, version: dict, application: dict) -> dict:
         "Scan Priority": application.get("scanPriority", ""),
         "Data Retention Enabled": application.get("isDataRetentionEnabled", False),
         "Data Retention Days": application.get("dataRetentionDays", ""),
-        # Version-specific fields - Updated to use flattened keys
         "Application Version": version.get("name", ""),
         "User Name": version.get("createdBy", ""),
         "Issue Template Name": version.get("issueTemplateName", ""),
         "Creation Date": version.get("creationDate", ""),
         "Committed": version.get("committed", False),
-        "Project Name": version.get("project_name", ""),  # Using flattened key
-        "Project Description": version.get(
-            "project_description", ""
-        ),  # Using flattened key
+        "Project Name": version.get("project", {}).get("name", ""),  # Using nested key
+        "Project Description": version.get("project", {}).get(
+            "description", ""
+        ),  # Using nested key
         "Server Version": version.get("serverVersion", ""),
         "Audit Assistant Training": version.get(
             "auditAssistantTrainingCustomTagGuid", ""
         ),
         "Mode": version.get("mode", ""),
-        # Current state fields - Using flattened keys
-        "Committed (State)": version.get("currentState_committed", False),
-        "Attention Required": version.get("currentState_attentionRequired", False),
-        "Analysis Results Exist": version.get(
-            "currentState_analysisResultsExist", False
+        "Committed (State)": version.get("currentState", {}).get("committed", False),
+        "Attention Required": version.get("currentState", {}).get(
+            "attentionRequired", False
         ),
-        "Audit Enabled": version.get("currentState_auditEnabled", False),
+        "Analysis Results Exist": version.get("currentState", {}).get(
+            "analysisResultsExist", False
+        ),
+        "Audit Enabled": version.get("currentState", {}).get("auditEnabled", False),
     }
-    print(
-        "***********############# Additional_data", additional_data
-    )  #! Debugging additional_data
+
+    # Debugging additional data
+
     consolidated_data = {**issue, **additional_data}
-    print(
-        "***********############# Consolidated_data", consolidated_data
-    )  #! Debugging consolidated_data
+
     return consolidated_data
 
 
@@ -369,7 +375,12 @@ def fetch_issues_concurrently(
         for future in as_completed(future_to_version):
             version_id = future_to_version[future]
             try:
-                issues = future.result()
+                try:
+                    issues = future.result()
+                except Exception as e:
+                    print(f"Error fetching issues for version ID {version_id}: {e}")
+                    continue  # Skip this version and process others
+
                 if issues:
                     # Map fields for each issue
                     for issue in issues:
@@ -461,19 +472,12 @@ def main():
             return
 
         # Process versions
-        versions = process_versions(
-            applications[:2]
-        )  # ! Limiting to 2 applications for testing
+        versions = process_versions(applications)
         if not versions:
             print("Failed to fetch versions. Exiting.")
             return
-        print(
-            "***********############# Versions, before issues ", versions
-        )  #! Debugging versions
-        # Process issues
-        process_issues(
-            versions[:2], applications[:2]
-        )  # ! Limiting to 2 versions for testing
+
+        process_issues(versions, applications)
 
     except Exception as e:
         print(f"An error occurred during execution: {e}")
