@@ -33,6 +33,7 @@ def main():
     filename = 'output.csv'
     fieldnames = mapped_data.keys()
     result = write_to_csv(items, fieldnames, filename)
+    json.dump(items, open('output.json', 'w'), indent=4)
 
     # Print the result
     print(f"CSV writing successful: {result}")

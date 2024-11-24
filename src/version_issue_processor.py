@@ -281,7 +281,8 @@ def map_fields(issue: dict, version: dict, application: dict) -> dict:
         "Issue Template Name": version.get("issueTemplateName", ""),
         "Creation Date": version.get("creationDate", ""),
         "Committed": version.get("committed", False),
-        "Project Name": version.get("project", {}).get("name", ""),  # Using nested key
+        "projectName": version.get("project", {}).get("name", ""),  # Using nested key
+        "projectVersionName": version.get("name", ""),
         "Project Description": version.get("project", {}).get(
             "description", ""
         ),  # Using nested key
@@ -309,35 +310,43 @@ def map_fields(issue: dict, version: dict, application: dict) -> dict:
 
 def fetch_issues(version_id, params_override=None):
     """
-    Fetch the latest security issue for a specific project version, handling pagination.
+    Fetch all security issues for a specific project version.
 
     Args:
         version_id (str): The ID of the project version.
-        params_override (dict, optional): Additional parameters to override defaults.consolidated_data
+        params_override (dict, optional): Additional parameters to override defaults.
 
     Returns:
-        list: List containing the latest issue item if available.
+        list: List containing all issue items if available.
     """
     all_issues = []
-    limit = 1  # Only fetch the latest issue
-    orderby = (
-        "foundDate desc"  # Order by 'foundDate' descending to get the latest issue
-    )
+    limit = 500  # Set a limit for the number of issues to fetch
+    start = 0
 
-    current_params = {"start": 0, "limit": limit, "orderby": orderby}
-    if params_override:
-        current_params.update(params_override)
+    while True:
+        current_params = {
+            "start": start,
+            "limit": limit,
+            "orderby": "foundDate desc"  # Order by found date descending
+        }
+        if params_override:
+            current_params.update(params_override)
 
-    response_data = fetch_api_data(
-        "issues", version_id=version_id, params_override=current_params
-    )
-    if not response_data:
-        return []
+        response_data = fetch_api_data("issues", version_id=version_id, params_override=current_params)
+        if not response_data:
+            break
 
-    issues = response_data.get("data", [])
-    if issues:
+        issues = response_data.get("data", [])
+        if not issues:
+            break
+
         all_issues.extend(issues)
-        print(f"Latest issue fetched for version ID {version_id}: {len(issues)}")
+        start += limit
+
+        # Check if we've fetched all issues
+        total_count = response_data.get("count", 0)
+        if start >= total_count:
+            break
 
     return all_issues
 
@@ -349,7 +358,7 @@ def fetch_issues_concurrently(
     max_workers: int = 10,
 ) -> list[dict]:
     """
-    Fetch all issues for multiple versions concurrently and map with application and version data.
+    Fetch all issues for multiple versions concurrently.
 
     Args:
         version_ids (list): List of version IDs to fetch issues for.
@@ -414,7 +423,10 @@ def process_versions(applications):
         list: List of all version items collected.
     """
     all_versions = []
-
+    params_override = {
+        "orderby": "creationDate desc",  # Order by creation date descending
+        "limit": 1  # Fetch only the latest version
+    }
     for app in applications:
         project_id = app.get("id")
         if not project_id:
@@ -423,7 +435,7 @@ def process_versions(applications):
         print(
             f"Fetching versions for application '{app.get('name', 'N/A')}' (ID: {project_id})"
         )
-        versions = fetch_versions(project_id)
+        versions = fetch_versions(project_id, params_override)
         all_versions.extend(versions)
 
     return all_versions
