@@ -1,9 +1,13 @@
-import os
 import requests
 import urllib3
 import csv
 from datetime import datetime
+import os
 import clear_file_content as clear  # type: ignore
+import tenable.io
+import tenable.sc
+from openpyxl import load_workbook
+import configparser
 import sys
 
 urllib3.disable_warnings()
@@ -13,6 +17,7 @@ headers = {
     "x-apikey": "accesskey=c63e476e7d7a468d83f9e557b1eeb5a1; secretkey=03df3cd43f71419b908cd4a8ca2389ee",
     "Content-Type": "application/json",
 }
+today = datetime.now().strftime("%Y-%m-%d")
 start_offset = 0
 batch_size = 100
 total_records = 200
@@ -46,13 +51,9 @@ def clear_file_contents(filename: str) -> bool:
         print(f"Failed to clear contents of {filename}: {e}")
         return False
 
-# Ensure the directory exists
-if not os.path.exists(os.path.dirname(csv_file_path)):
-    os.makedirs(os.path.dirname(csv_file_path))
-
-clear_file_contents(csv_file_path)
 
 if not os.path.exists(csv_file_path):
+    clear_file_contents(csv_file_path)
     with open(csv_file_path, mode="w", newline="") as file:
         writer = csv.writer(file)
         headers = [
@@ -83,7 +84,9 @@ if len(sys.argv) != 2:
     print("Usage: python tanable.py <timestamp>")
     sys.exit(1)
 
-timestamp = sys.argv[1]
+last_seen_epoch = sys.argv[1]
+endtime = datetime.now().timestamp().hex()    
+timestamp = f"  {last_seen_epoch}   {endtime}"
 
 while start_offset < total_records:
     end_offset = start_offset + batch_size - 1
@@ -98,7 +101,7 @@ while start_offset < total_records:
                 {
                     "filterName": "lastSeen",
                     "operator": "=",
-                    "value": timestamp,
+                    "value": timestamp,  # Use the timestamp from command line
                 },
                 {
                     "filterName": "pluginID",
@@ -118,42 +121,38 @@ while start_offset < total_records:
 
     if response.status_code == 200:
         data = response.json()
-        if data and "response" in data:
-            totalRecords = data["response"].get("totalRecords", 0)
-            total_records = int(totalRecords)
-            print("Total Records: ", totalRecords)
-            results = data["response"].get("results", [])
+        totalRecords = data.get("response", {}).get("totalRecords")
+        total_records = int(totalRecords)
+        print("Total Records: ", totalRecords)
+        results = data.get("response", {}).get("results", [])
 
-            with open(csv_file_path, mode="a", newline="") as file:
-                writer = csv.writer(file)
-                for item in results:
-                    row = [
-                        item.get("pluginID"),
-                        item.get("vulnUUID"),
-                        item.get("severity", {}).get("id"),
-                        item.get("severity", {}).get("name"),
-                        item.get("severity", {}).get("description"),
-                        item.get("pluginName"),
-                        item.get("protocol"),
-                        item.get("ip"),
-                        item.get("dnsName"),
-                        item.get("netbiosName"),
-                        item.get("pluginText"),
-                        item.get("cve"),
-                        item.get("firstSeen"),
-                        item.get("lastSeen"),
-                        item.get("description"),
-                        item.get("hasBeenMitigated"),
-                        item.get("xref"),
-                        item.get("repository", {}).get("id"),
-                        item.get("repository", {}).get("name"),
-                    ]
-                    writer.writerow(row)
+        with open(csv_file_path, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            for item in results:
+                row = [
+                    item.get("pluginID"),
+                    item.get("vulnUUID"),
+                    item.get("severity", {}).get("id"),
+                    item.get("severity", {}).get("name"),
+                    item.get("severity", {}).get("description"),
+                    item.get("pluginName"),
+                    item.get("protocol"),
+                    item.get("ip"),
+                    item.get("dnsName"),
+                    item.get("netbiosName"),
+                    item.get("pluginText"),
+                    item.get("cve"),
+                    item.get("firstSeen"),
+                    item.get("lastSeen"),
+                    item.get("description"),
+                    item.get("hasBeenMitigated"),
+                    item.get("xref"),
+                    item.get("repository", {}).get("id"),
+                    item.get("repository", {}).get("name"),
+                ]
+                writer.writerow(row)
 
-            print(f"Batch {start_offset}-{end_offset} written to {csv_file_path}")
-        else:
-            print("Error: Unexpected response structure.")
-            break
+        print(f"Batch {start_offset}-{end_offset} written to {csv_file_path}")
     else:
         print("Error:", response.status_code, response.text)
         break
