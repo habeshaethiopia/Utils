@@ -105,4 +105,4 @@ if __name__ == "__main__":
     table_name = "example_table"
 
     # Create table and insert data
-    # create_table_from_csv(csv_file_path, table_name)
+    create_table_from_csv(csv_file_path, table_name)
