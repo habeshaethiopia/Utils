@@ -10,14 +10,13 @@ from sqlalchemy import (
     Date,
 )
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import types
+from sqlalchemy.dialects.mysql import VARCHAR
 import chardet
-
+DATABASE_URL = "mysql+pymysql://root:1942@localhost:3306/example"
 # Database configuration
 server = r"AWEASC2A2\SQLEXPRESS"
 db = "Tenable_SC"
 driver = "ODBC+Driver+18+for+SQL+Server"
-DATABASE_URL = "mysql+pymysql://root:1942@localhost:3306/example"
 
 # Create the connection string
 connection_string = f"mssql+pyodbc://{server}/{db}?trusted_connection=yes&driver={driver}"
@@ -35,10 +34,11 @@ except Exception as e:
 # Session factory
 Session = sessionmaker(bind=engine)
 
+
 def create_table_from_csv(csv_file_path, table_name):
     """
     Creates a table dynamically from a CSV file and inserts data into the table.
-    If the table already exists, it drops the table and recreates it with new data.
+    If the table already exists, it only inserts the data.
 
     :param csv_file_path: Path to the CSV file
     :param table_name: Name of the table to create or insert into
@@ -57,52 +57,39 @@ def create_table_from_csv(csv_file_path, table_name):
     except Exception as e:
         print(f"Error reading CSV: {e}")
         return
-
     # Establish connection and metadata
     metadata = MetaData()
 
     # Define a table dynamically based on the CSV columns
     table_columns = []
     for column in df.columns:
+        # Infer column types based on the DataFrame
         if pd.api.types.is_integer_dtype(df[column]):
-            col_type = types.INTEGER
+            col_type = Integer
         elif pd.api.types.is_bool_dtype(df[column]):
-            col_type = types.BOOLEAN
+            col_type = Boolean
         elif pd.api.types.is_datetime64_any_dtype(df[column]):
-            col_type = types.DATETIME
+            col_type = Date
         else:
-            col_type = types.VARCHAR(255)  # MSSQL-compatible String
-        table_columns.append(Column(column, col_type, nullable=True))
+            # Default to String with max length 255
+            col_type = String
+        table_columns.append(Column(column, col_type, nullable=False))
 
-    # Define the table
-    table = Table(table_name, metadata, *table_columns)
+    # Create the table object
+    table = Table(table_name, metadata, *table_columns, extend_existing=True)
 
-    # Drop the table if it exists and create a new one
-    try:
-        with engine.connect() as connection:
-            print(f"Dropping table '{table_name}' if it exists...")
-            table.drop(engine, checkfirst=True)
-            print(f"Creating table '{table_name}'...")
-            metadata.create_all(engine)
-    except Exception as e:
-        print(f"Error dropping or creating table: {e}")
-        return
 
     # Insert data into the table
     try:
-        # Insert in manageable chunks to avoid parameter limits
-        BATCH_SIZE = 100  # Adjust as needed for performance
-        for start in range(0, len(df), BATCH_SIZE):
-            batch = df.iloc[start:start + BATCH_SIZE]
-            batch.to_sql(
-                table_name,
-                con=engine,
-                if_exists="append",
-                index=False,
-            )
-        print(f"Data successfully inserted into the table '{table_name}'.")
+        # Create the table if it doesn't exist
+        metadata.create_all(engine)
+        with engine.connect() as connection:
+            # Insert rows
+            df.to_sql(table_name, con=connection, if_exists="append", index=False, method="multi")
+            print(f"Data successfully inserted into the table '{table_name}'.")
     except Exception as e:
-        print(f"An error occurred during insertion: {e}")
+        print(f"An error occurred: {e}")
+
 
 # Example usage
 if __name__ == "__main__":
