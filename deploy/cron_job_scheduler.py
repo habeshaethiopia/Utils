@@ -36,20 +36,20 @@ def run_fetch_data():
     try:
         logger.info("Starting run_fetch_data function.")
         current_epoch = int(datetime.now().timestamp())
-
         # Read the last seen epoch
         last_seen_epoch = read_last_seen_epoch()
+        print(f"time stamp {str(last_seen_epoch)}-{str(current_epoch)}")
         logger.info(f"Last seen epoch: {last_seen_epoch}")
 
         # Run the script with the last seen epoch argument
-        logger.info("Executing version_issue_processor.py with last seen epoch.")
+        logger.info("Executing version_issue_processor.py")
+        subprocess.run(["python", "version_issue_processor.py"], check=True)
+        logger.info("excuting tenable.py with last seen epoch.")
         subprocess.run(
-            ["python", "version_issue_processor.py"], check=True
+            ["python", "tenable.py", f"{str(last_seen_epoch)}-{str(current_epoch)}"],
+            check=True,
         )
-        subprocess.run(
-             ["python", "tenable.py", f"{str(last_seen_epoch)}-{str(current_epoch)}"], check=True
-        )
-        
+
         logger.info("version_issue_processor.py executed successfully.")
 
         # Update the last seen epoch to the current time
@@ -65,7 +65,9 @@ def run_fetch_data():
 
 
 # Schedule the job to run every day at 2 AM
-schedule.every().day.at("02:00").do(run_fetch_data)
+# schedule.every().day.at("02:00").do(run_fetch_data)
+# Run the job every 5 seconds for testing purposes
+schedule.every(2).seconds.do(run_fetch_data)
 schedule.every().second.do(run_fetch_data)
 logger.info("Cron job scheduler started. Waiting for the scheduled time...")
 

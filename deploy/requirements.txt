@@ -1,0 +1,6 @@
+schedule
+configparser
+requests
+urllib3
+pandas
+Office365-REST-Python-Client

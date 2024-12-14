@@ -147,4 +147,3 @@ while start_offset < total_records:
         break
 
     start_offset += batch_size
-print("Data extraction completed.")

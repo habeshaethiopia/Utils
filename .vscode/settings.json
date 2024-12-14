@@ -1,5 +1,35 @@
 {
   "python.testing.unittestArgs": ["-v", "-s", ".", "-p", "test_*.py"],
   "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": true
+  "python.testing.unittestEnabled": true,
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 3306,
+      "driver": "MariaDB",
+      "username": "root",
+      "name": "localhost",
+      "database": "example",
+      "askForPassword": true
+    },
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 3306,
+      "driver": "MySQL",
+      "name": "Localhost",
+      "username": "root",
+      "database": "/",
+      "askForPassword": true
+    }
+  ]
 }

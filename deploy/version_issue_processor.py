@@ -7,8 +7,6 @@ import urllib3
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
-
 # -----------------------------
 # Global Variables for API Tokens
 # -----------------------------
@@ -410,7 +408,7 @@ def fetch_issues_concurrently(
     # Write all mapped issues to the CSV
     fieldnames = all_issues[0].keys() if all_issues else []
     write_to_csv(all_issues, fieldnames, API_CONFIG["issues"]["output_file"])
-    remove_duplicates_from_csv(API_CONFIG["issues"]["output_file"],"id")
+
     return all_issues
 
 

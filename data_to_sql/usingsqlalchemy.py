@@ -12,20 +12,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.mysql import VARCHAR
 import chardet
-
+# DATABASE_URL = "mysql+pymysql://root:1942@localhost:3306/example"
 # Database configuration
-DATABASE_URL = "mysql+pymysql://root:1942@localhost:3306/example"
-# Define the server and databases
-
-# Database connection details
 server = r"AWEASC2A2\SQLEXPRESS"
 db = "Tenable_SC"
-db2 = "Fortify_SSC"
+driver = "ODBC+Driver+18+for+SQL+Server"
 
 # Create the connection string
-connection_string = (
-    f"mssql+pyodbc://{server}/{db}?trusted_connection=yes&driver=SQL+Server"
-)
+connection_string = f"mssql+pyodbc://{server}/{db}?trusted_connection=yes&driver={driver}"
 
 # Create the SQLAlchemy engine
 engine = create_engine(connection_string)
@@ -62,6 +56,7 @@ def create_table_from_csv(csv_file_path, table_name):
         print("CSV read successfully!")
     except Exception as e:
         print(f"Error reading CSV: {e}")
+        return
     # Establish connection and metadata
     metadata = MetaData()
 
@@ -77,20 +72,24 @@ def create_table_from_csv(csv_file_path, table_name):
             col_type = Date
         else:
             # Default to String with max length 255
-            col_type = VARCHAR(255)
-        table_columns.append(Column(column, col_type, nullable=False))
+            col_type = String(255)
+        table_columns.append(Column(column, col_type, nullable=True))
+
+    # Drop the table if it exists
+    table = Table(table_name, metadata, *table_columns, extend_existing=True)
+    table.drop(engine, checkfirst=True)
 
     # Create the table object
     table = Table(table_name, metadata, *table_columns, extend_existing=True)
 
-    # Create the table if it doesn't exist
-    metadata.create_all(engine)
 
     # Insert data into the table
     try:
+        # Create the table if it doesn't exist
+        metadata.create_all(engine)
         with engine.connect() as connection:
             # Insert rows
-            df.to_sql(table_name, con=connection, if_exists="append", index=False)
+            df.to_sql(table_name, con=connection, if_exists="append", index=False, method="multi")
             print(f"Data successfully inserted into the table '{table_name}'.")
     except Exception as e:
         print(f"An error occurred: {e}")
