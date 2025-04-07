@@ -38,15 +38,8 @@ def flatten_dict(d, parent_key="", sep="_"):
         if isinstance(v, dict):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         elif isinstance(v, list):
-            # Check if the list contains dictionaries
-            if len(v) > 0 and isinstance(v[0], dict):
-                for idx, sub_dict in enumerate(v):
-                    items.extend(
-                        flatten_dict(sub_dict, f"{new_key}{sep}{idx}", sep=sep).items()
-                    )
-            else:
-                # Convert lists to comma-separated strings if they don't contain dictionaries
-                items.append((new_key, ", ".join(map(str, v))))
+            # Convert lists to comma-separated strings if they don't contain dictionaries
+            items.append((new_key, ", ".join(map(str, v))))
         else:
             items.append((new_key, v))
     return dict(items)
