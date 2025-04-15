@@ -14,6 +14,7 @@ from sqlalchemy import (
     DateTime,
     text,
 )
+import urllib3
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, NVARCHAR
 import logging
@@ -49,8 +50,10 @@ class DatabaseManager:
     """Handles database connections and operations."""
 
     def __init__(self, server: str, db: str, driver: str):
-        # self.connection_string = f"mssql+pyodbc://{server}/{db}?trusted_connection=yes&driver={driver}"
-        self.connection_string = f"sqlite:///{db}.db"
+        self.connection_string = (
+            f"mssql+pyodbc://{server}/{db}?trusted_connection=yes&driver={driver}"
+        )
+        # self.connection_string = f"sqlite:///{db}.db"
         self.engine = self.get_engine()
 
     def get_engine(self):
@@ -119,14 +122,14 @@ class DatabaseManager:
             Column("scannerIsEnabled", Boolean),
             Column("scannerPoolId", Integer),
             Column("scannerPoolName", NVARCHAR(100)),
-            Column("webInspectScanId", UNIQUEIDENTIFIER),
+            Column("webInspectScanId", NVARCHAR(100)),
             Column("scanStatsUpdatedDateTime", DateTime),
             Column("scanStatusDateTime", DateTime),
             Column("publishStatusDateTime", DateTime),
             Column("scanScheduleId", Integer, nullable=True),
             Column("scanScheduleName", NVARCHAR(255)),
             Column("useAssignedScannerOnly", Boolean),
-            Column("policyId", UNIQUEIDENTIFIER),
+            Column("policyId", NVARCHAR(100)),
             Column("policyName", NVARCHAR(100)),
             Column("hasScanResults", Boolean),
             Column("hasScanLogs", Boolean),
@@ -147,9 +150,9 @@ class DatabaseManager:
             Column("enableSASTCorrelation", Boolean),
             Column("isImported", Boolean),
             Column("hasDASTServiceLogs", Boolean),
-            Column("fortifyConnectClientId", UNIQUEIDENTIFIER, nullable=True),
+            Column("fortifyConnectClientId", NVARCHAR(100), nullable=True),
             Column("fortifyConnectClientName", NVARCHAR(255)),
-            Column("fortifyConnectConnectionId", UNIQUEIDENTIFIER, nullable=True),
+            Column("fortifyConnectConnectionId", NVARCHAR(100), nullable=True),
         )
 
         try:
@@ -186,16 +189,18 @@ class DatabaseManager:
 
 
 class APIDataFetcher:
-    """Handles API requests and data retrieval."""
+    """Handles API requests and data retrieval with SSL warning suppression."""
 
     def __init__(self, url: str, headers: Dict[str, str]):
         self.url = url
         self.headers = headers
+        # Suppress SSL warnings
+        urllib3.disable_warnings()
 
     def fetch_data(self) -> List[Dict]:
-        """Fetch data from the API."""
+        """Fetch data from the API, bypassing SSL verification."""
         try:
-            response = requests.get(self.url, headers=self.headers)
+            response = requests.get(self.url, headers=self.headers, verify=False)
             response.raise_for_status()
             data = response.json()
             items = data.get("items", [])
