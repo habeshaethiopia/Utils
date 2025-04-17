@@ -130,10 +130,19 @@ class DatabaseManager:
     def save_dataframe(self, df: pd.DataFrame) -> int:
         """Save DataFrame to job_summaries table."""
         try:
-            # Get the table schema from the database
+            # Get the table schema from the database for SQL Server
             with self.engine.connect() as conn:
-                table_columns = conn.execute(text(f"PRAGMA table_info({TABLE_NAME})")).fetchall()
-                table_column_names = [col[1] for col in table_columns]
+                table_columns = conn.execute(
+                    text(
+                        f"""
+                        SELECT COLUMN_NAME
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_NAME = '{TABLE_NAME}'
+                    """
+                    )
+                ).fetchall()
+                logger.info(f"Fetched table columns: {table_columns}")
+                table_column_names = [col[0] for col in table_columns]
 
             # Filter the DataFrame to include only columns present in the table
             df = df[table_column_names]
