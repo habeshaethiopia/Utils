@@ -215,19 +215,26 @@ class DataProcessor:
             if field in df.columns:
                 df[field] = df[field].apply(DataProcessor.convert_datetime)
         if "cloudPool" in df.columns:
+            # Correct the type check for elements in the cloudPool column
             df["cloudPoolUuid"] = df["cloudPool"].apply(
-                lambda x: x.get("uuid") if x else None
+                lambda x: x.get("uuid") if isinstance(x, dict) else None
             )
             df["cloudPoolName"] = df["cloudPool"].apply(
-                lambda x: x.get("name") if x else None
+                lambda x: x.get("name") if isinstance(x, dict) else None
             )
             df["cloudPoolDescription"] = df["cloudPool"].apply(
-                lambda x: x.get("description") if x else None
+                lambda x: x.get("description") if isinstance(x, dict) else None
             )
             df["cloudPoolChildOfGlobalPool"] = df["cloudPool"].apply(
-                lambda x: x.get("childOfGlobalPool") if x else None
+                lambda x: x.get("childOfGlobalPool") if isinstance(x, dict) else None
             )
             df.drop(columns=["cloudPool"], inplace=True)
+
+        # Ensure all columns are of supported types
+        for col in df.columns:
+            df[col] = df[col].apply(
+                lambda x: str(x) if isinstance(x, (dict, list)) else x
+            )
         logger.info(f"Prepared DataFrame with {len(df)} records")
         return df
 
